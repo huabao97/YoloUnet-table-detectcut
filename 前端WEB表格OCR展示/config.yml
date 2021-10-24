@@ -1,0 +1,28 @@
+preprocessing:
+  hed_path: './models/network-bsds500.pytorch'
+table_detection:
+  model_path: './models/new_epoch_24.pth'
+  config_path: './cascade_mask_rcnn_hrnetv2p_w32_20e.py'
+  score_thr: 0.85
+table_line:
+  type: 'unet'
+  unet:
+    model_path: './models/table-line.h5'
+    input_shape: [512, 512]
+    hprob: 0.7
+    vprob: 0.7
+  traditional:
+    placeholder: 'placeholder'
+ocr:
+  paddle:
+    det_path: "./models/ch_ppocr_server_v1.1_det_infer/"
+    rec_path: "./models/ch_ppocr_server_v1.1_rec_infer/"
+  paddle_lite:
+    det_path: "./models/ch_ppocr_server_v1.1_det_infer/"
+    rec_path: "./models/ch_ppocr_mobile_v1.1_rec_infer/"
+  chineseocr:
+    det_path: "./models/dbnet.onnx"
+    rec_path: "./models/ocr-lstm.pth"
+web:
+  host: '0.0.0.0'
+  port: 5000
