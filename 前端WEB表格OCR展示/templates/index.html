@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="../static/css/sweetalert.css" crossorigin="anonymous">
+
+    <title>Hyper-Table-Recognition</title>
+    <style>
+        .enlargeImg_wrapper {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            background-color: rgba(52, 52, 52, 0.8);
+            background-size: 37%;
+        }
+
+        img:hover {
+            cursor: zoom-in;
+        }
+
+        .enlargeImg_wrapper:hover {
+            cursor: zoom-out;
+        }
+
+        .backgroundcolor {
+            background-color: rgba(86, 61, 124, .15);
+            border: 1px solid rgba(86, 61, 124, .2);
+        }
+
+        .themed-container {
+            padding: 15px;
+            margin-bottom: 30px;
+            background-color: rgba(0, 123, 255, .15);
+            border: 1px solid rgba(0, 123, 255, .2);
+        }
+
+        .middle {
+            float: none;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .container {
+
+            margin: auto;
+            padding-right: 0px;
+            padding-left: 0px;
+
+        }
+
+        .background_withhight {
+            height: 400px;
+            background-color: rgba(86, 61, 124, .15);
+            border: 1px solid rgba(86, 61, 124, .2);
+        }
+
+        .upload-url {
+            border-radius: 2px;
+            border: solid 1px rgb(202, 202, 202);
+            height: 24px;
+            width: 460px;
+            padding-left: 3px;
+        }
+
+        .upload-btn {
+            border: 0px;
+            border-radius: 3px;
+            background-color: black;
+            padding: 6px;
+            margin-left: 3px;
+            color: white;
+            cursor: pointer
+        }
+
+        .upload-file {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 460px;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
+
+        #msg {
+            height: 400px;
+            overflow: auto;
+            border: 2px solid #000000;
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        #excel_view {
+            background-color: #ffffff;
+        }
+
+        #button_row {
+            position: relative;
+        }
+
+        #download {
+            cursor: not-allowed;
+        }
+
+        #check_pipeline {
+            cursor: not-allowed;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="imgBox"></div>
+<div class="container-fluid ">
+    <!-- 第一栏 -->
+    <div class="row ">
+        <div class="col-12">
+            <form id="local_image_form" enctype="multipart/form-data" method="post">
+                <div class="form-row align-items-center">
+                    <div class="col-6">
+                        <div class="col-auto my-1">
+                            <label class="sr-only" for="img_file">URLName</label>
+                            <input id="img_file" name="local_image" class="form-control mb-2"
+                                   type="file"/>
+
+                        </div>
+                        <div class="col-auto my-1" id="img_info">
+
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="col-auto my-1">
+                            <button class="btn btn-primary" id="local_image_submit" type="button">提交
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="col-auto my-2">
+                            <label class="mr-sm-2 sr-only" for="inlineFormCustomSelect1">OCR模块</label>
+                            <select class="custom-select mr-sm-3" id="inlineFormCustomSelect1" form="local_image_form"
+                                    name="ocr">
+                                <option value="-1">请选择OCR模块</option>
+                                {% for option in ocr %}
+                                    <option value="{{ option.value }}">{{ option.desp }}</option>
+                                {% endfor %}
+                            </select>
+                            <label class="mr-sm-2 sr-only" for="inlineFormCustomSelect2">表格框检测模块</label>
+                            <select class="custom-select mr-sm-3" id="inlineFormCustomSelect2" form="local_image_form"
+                                    name="cell">
+                                <option value="-1">请选择表格框检测模块</option>
+                                {% for option in cell %}
+                                    <option value="{{ option.value }}">{{ option.desp }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="col-auto my-1">
+                            {% for option in advance %}
+                                <div class="row">
+                                    <div class="custom-control custom-checkbox mr-sm-2">
+                                        <input type="checkbox" class="custom-control-input" id="{{ option.value }}"
+                                               name="{{ option.value }}"{% if option.enable %} checked{% endif %}>
+                                        <label class="custom-control-label"
+                                               for="{{ option.value }}">{{ option.desp }}</label>
+                                    </div>
+                                    {% if option.value == 'p_trans' %}
+                                        <select class="custom-select mr-sm-3" id="p_trans_options"
+                                                form="local_image_form"
+                                                name="p_trans_options">
+                                            {% for option in p_trans_options %}
+                                                <option value="{{ option.value }}">{{ option.desp }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 间隔栏 -->
+    <div class="row mb-3"></div>
+    <!-- 第二栏 -->
+    <div class="row mb-3">
+        <div class="col-6 ">
+            <div class="col-auto my-1 background_withhight">
+                <img id="cell_img" src="../static/default.svg" class="img-responsive img-rounded enlargeImg" alt="default image"
+                     style="height: 300px">
+            </div>
+        </div>
+        <div class="col-6 ">
+            <div id="excel_view" class="col-auto my-1 background_withhight">
+            </div>
+
+        </div>
+
+
+    </div>
+    <!-- 实体间隔栏 -->
+
+    <div class="row">
+        <div class="col-12 backgroundcolor" id="button_row">
+            <button class="btn btn-primary" id="download" type="button" disabled="disabled">下载Excel文件</button>
+            <label id="table_title"></label>
+            {#            <button class="btn btn-info" id="check_pipeline" type="button" disabled="disabled">查看OCR流水线</button>#}
+        </div>
+    </div>
+
+    <!-- 间隔栏 -->
+    <div class="row mb-3"></div>
+    <!-- 第三栏 -->
+    <div class="row">
+        <div class=" col-6 ">
+            <div id="echarts_visualization" class="col-auto my-1 background_withhight">
+            </div>
+        </div>
+        <div class=" col-6 ">
+            <div id="msg"></div>
+        </div>
+    </div>
+    <!-- 间隔栏 -->
+    {#    <div class="row mb-3"></div>#}
+    <div class="row">
+        <div class="col-12">
+            <div class="row" id="pipeline">
+            </div>
+        </div>
+    </div>
+</div>
+<script
+        lang="javascript"
+        src="../static/js/xlsx.full.min.js"
+></script>
+<script src="../static/js/jquery.min.js"
+        crossorigin="anonymous"></script>
+<script src="../static/js/jquery.form.js"
+        crossorigin="anonymous"></script>
+<script src="../static/js/popper.min.js"
+        crossorigin="anonymous"></script>
+<script src="../static/js/bootstrap.min.js"
+        crossorigin="anonymous"></script>
+<script src="../static/js/sweetalert.min.js"
+        crossorigin="anonymous"></script>
+<script src="../static/js/echarts.min.js"
+        crossorigin="anonymous"></script>
+
+<script>
+    $("#p_trans").click(function () {
+        if (!$(this).prop('checked')) {
+            $("#p_trans_options").attr("disabled", true);
+        } else {
+            $("#p_trans_options").removeAttr("disabled");
+        }
+    })
+</script>
+
+<script>
+    window.check = function () {
+        var input = document.getElementById("img_file");
+        if (input.files) {
+            //读取图片数据
+            var f = input.files[0];
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var data = e.target.result;
+                //加载图片获取图片真实宽度和高度
+                var image = new Image();
+                image.onload = function () {
+                    var width = image.width;
+                    var height = image.height;
+                    $("#img_info").html("图片分辨率: " + width + "X" + height + ", 文件大小:" + (f.size / 1024).toFixed(1) + "KB")
+                    // alert(width + '======' + height + "=====" + f.size);
+                };
+                image.src = data;
+            };
+            reader.readAsDataURL(f);
+        } else {
+            var image = new Image();
+            image.onload = function () {
+                var width = image.width;
+                var height = image.height;
+                var fileSize = image.fileSize;
+                $("#img_info").html("图片分辨率: " + width + "X" + height + ", 文件大小:" + fileSize / 1024 + "KB")
+
+            }
+            image.src = input.value;
+
+        }
+
+    }
+    $("#img_file").change(function (e) {
+        check();
+    });
+</script>
+
+<script>
+    //关闭并移除图层
+    function closeImg() {
+        $('.enlargeImg_wrapper').fadeOut(200).remove();
+    }
+
+    //查看大图
+    function enlargeImg() {
+        $(".enlargeImg").click(function () {
+            $('.imgBox').html("<div  class='enlargeImg_wrapper'></div>");
+            var imgSrc = $(this).attr('src');
+            $(".enlargeImg_wrapper").css("background-image", "url(" + imgSrc + ")");
+            $('.enlargeImg_wrapper').fadeIn(200);
+        })
+        $('.imgBox').on('click', '.enlargeImg_wrapper', function () {
+            $('.enlargeImg_wrapper').fadeOut(200).remove();
+        })
+    }
+</script>
+<script>
+    // bind click to submit local image detect
+    $("#local_image_submit").click(function () {
+        var status_code;
+        var prompt = {
+            'cell': '表格Cell识别',
+            'ocr': 'OCR推理',
+            'preprocessing': '图片预处理',
+            'match': '表格重建与匹配',
+            'flagged': '透视变换结果',
+            'det': '表格检测'
+        }
+        var formData = new FormData($('#local_image_form')[0]);
+        console.log(formData);
+        $.ajax({
+            url: '/upload',
+            type: 'post',
+            data: formData,
+            contentType: false, //必须
+            processData: false, //必须
+            success: function (result) {
+                console.log(result);
+                status_code = result.status
+                if (!status_code.startsWith("1")) {
+                    swal({
+                        title: "出错了",
+                        text: "错误代码: " + result.status + ", 原因:" + result.desp,
+                        type: "error"
+                    });
+                    return;
+                }
+                var ret_info = result.details;
+                $('#cell_img').attr('src', ret_info.cell[1]);
+                // enable button
+                $("#download").removeAttr("disabled");
+                $("#download").css("cursor", "pointer");
+                $("#download").click(function () {
+                    var $eleForm = $("<form method='get'></form>");
+                    $eleForm.attr("action", ret_info.excel);
+                    $(document.body).append($eleForm);
+                    //提交表单，实现下载
+                    $eleForm.submit();
+                });
+
+
+                // load excel
+                let url = ret_info.excel;
+                let req = new XMLHttpRequest()
+                req.open('GET', url, true)
+                req.responseType = 'arraybuffer'
+                req.onload = (s) => {
+                    let data = new Uint8Array(req.response)
+                    var wb = XLSX.read(data, {type: 'array'})
+                    console.log(wb)
+                    var wsName = wb.SheetNames[0];
+                    $("#table_title").html("表格名称: " + wsName);
+                    var ws = wb.Sheets[wsName];
+                    const excelView = document.getElementById('excel_view');
+                    // 渲染
+                    excelView.innerHTML = XLSX.utils.sheet_to_html(ws, {id: 'excel_table" class="table table-hover table-bordered" style="table-layout:fixed'});
+                }
+
+                req.send();
+                // visualize run time
+                var mydata = [];
+                for (k in ret_info) {
+                    if (ret_info[k].length !== 2) continue;
+                    mydata.push({value: ret_info[k][0], name: prompt[k] + ': ' + ret_info[k][0].toFixed(2) + 'ms'})
+                }
+                var mychart = echarts.init(document.getElementById('echarts_visualization'));
+                mychart.setOption({
+                    title: {
+                        show: true,//显示策略，默认值true,可选为：true（显示） | false（隐藏）
+                        text: '各阶段耗时分布',//主标题文本，'\n'指定换行
+                        link: '',//主标题文本超链接,默认值true
+                        target: null,//指定窗口打开主标题超链接，支持'self' | 'blank'，不指定等同为'blank'（新窗口）
+                        subtext: '全程耗时: ' + ret_info['total_time'].toFixed(2) + 'ms',//副标题文本，'\n'指定换行
+                        sublink: '',//副标题文本超链接
+                        subtarget: null,//指定窗口打开副标题超链接，支持'self' | 'blank'，不指定等同为'blank'（新窗口）
+                        x: 'center', //水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                        y: 'top',//垂直安放位置，默认为top，可选为：'top' | 'bottom' | 'center' | {number}（y坐标，单位px）
+                        textAlign: null,//水平对齐方式，默认根据x设置自动调整，可选为： left' | 'right' | 'center
+                        backgroundColor: 'rgba(0,0,0,0)',//标题背景颜色，默认'rgba(0,0,0,0)'透明
+                        borderColor: '#ccc',//标题边框颜色,默认'#ccc'
+                        borderWidth: 0,//标题边框线宽，单位px，默认为0（无边框）
+                        padding: 5,//标题内边距，单位px，默认各方向内边距为5，接受数组分别设定上右下左边距
+                        itemGap: 10,//主副标题纵向间隔，单位px，默认为10
+                        textStyle: {//主标题文本样式{"fontSize": 18,"fontWeight": "bolder","color": "#333"}
+                            fontFamily: 'Arial, Verdana, sans...',
+                            fontSize: 15,
+                            fontStyle: 'normal',
+                            fontWeight: 'normal',
+                        },
+                        subtextStyle: {//副标题文本样式{"color": "#aaa"}
+                            fontFamily: 'Arial, Verdana, sans...',
+                            fontSize: 12,
+                            fontStyle: 'normal',
+                            fontWeight: 'normal',
+                        },
+                        zlevel: 0,//一级层叠控制。默认0,每一个不同的zlevel将产生一个独立的canvas，相同zlevel的组件或图标将在同一个canvas上渲染。zlevel越高越靠顶层，canvas对象增多会消耗更多的内存和性能，并不建议设置过多的zlevel，大部分情况可以通过二级层叠控制z实现层叠控制。
+                        z: 6,//二级层叠控制，默认6,同一个canvas（相同zlevel）上z越高约靠顶层。
+                    },
+                    series: [
+                        {
+                            name: '推理时间分布',
+                            type: 'pie',    // 设置图表类型为饼图
+                            radius: '70%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+                            data: mydata
+                        }
+                    ]
+                });
+                // show pipeline
+                var new_pipeline_html = "";
+                for (k in ret_info) {
+                    if (ret_info[k].length === 2) {
+                        new_pipeline_html += "<div class=\"col-auto my-3 background_withhight\"><div class=\"card\" style=\"width:200px\"> <img class=\"enlargeImg\" width=\"200\" src=\"" + ret_info[k][1] + "\" title=\"点击查看大图\"/> <div class=\"card-body\"> <h4 class=\"card-title\">" + prompt[k] + "</h4> </div> </div> </div>";
+                    } else if (k === "flagged") {
+                        new_pipeline_html += "<div class=\"col-auto my-3 background_withhight\"><div class=\"card\" style=\"width:200px\"> <img class=\"enlargeImg\" width=\"200\" src=\"" + ret_info[k] + "\" title=\"点击查看大图\"/> <div class=\"card-body\"> <h4 class=\"card-title\">" + prompt[k] + "</h4> </div> </div> </div>";
+                    }
+                }
+
+                $("#pipeline").html(new_pipeline_html);
+                enlargeImg();
+
+                {#  {'debug': '', 'total_time': 370.9299564361572,#}
+                {## 'original': '1c9e9711-f01d-4113-b11e-e546428a759a_original.jpg',#}
+                {## 'cell': [111.13262176513672, '1c9e9711-f01d-4113-b11e-e546428a759a_cell.jpg'],#}
+                {## 'ocr': [239.74919319152832, '1c9e9711-f01d-4113-b11e-e546428a759a_ocr.jpg'],#}
+                {## 'preprocessing': [2.897500991821289, '1c9e9711-f01d-4113-b11e-e546428a759a_pre.jpg'],#}
+                {## 'flagged': '1c9e9711-f01d-4113-b11e-e546428a759a_flagged.jpg',#}
+                {## 'excel': '1c9e9711-f01d-4113-b11e-e546428a759a.xlsx'}#}
+
+            },
+            error: function () {
+                swal({
+                    title: "未知错误",
+                    text: "提交请求出错，可能是断网了？",
+                    type: "error"
+                });
+            }
+        });
+    })
+</script>
+<script>
+    var host = window.location.host;
+    $(document).ready(function () {
+        if (!window.WebSocket) {
+            if (window.MozWebSocket) {
+                window.WebSocket = window.MozWebSocket;
+            } else {
+                $('#msg').prepend("<p>你的浏览器不支持Websocket，请换用现代浏览器</p>");
+            }
+        }
+        var wslog = new WebSocket('ws://' + host + '/log');
+        wslog.onopen = function (evt) {
+            $('#msg').append('<li>websocket连接成功</li>');
+        }
+        wslog.onmessage = function (evt) {
+            $('#msg').empty();
+            $('#msg').prepend(evt.data);
+        }
+    });
+</script>
+</body>
+
+</html>
